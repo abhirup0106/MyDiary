@@ -81,41 +81,46 @@
     <button class="nav-button" onclick="window.location.href='diary.html'">View Diary</button>
   </div>
 
-  <script>
-    const diaryForm = document.getElementById('diaryForm');
-    const entryTitle = document.getElementById('entryTitle');
-    const entryText = document.getElementById('entryText');
-    const entryImages = document.getElementById('entryImages');
+<script>
+  const diaryForm = document.getElementById('diaryForm');
+  const entryTitle = document.getElementById('entryTitle');
+  const entryText = document.getElementById('entryText');
+  const entryImages = document.getElementById('entryImages');
 
-    diaryForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  diaryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      const entry = {
-        title: entryTitle.value,
-        text: entryText.value,
-        images: []
-      };
+    const entry = {
+      title: entryTitle.value,
+      text: entryText.value,
+      images: []
+    };
 
-      if (entryImages.files.length > 0) {
-        const imagePromises = Array.from(entryImages.files).map(file => {
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(file);
-          });
+    // Convert selected images to Base64
+    if (entryImages.files.length > 0) {
+      const imagePromises = Array.from(entryImages.files).map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(file);
         });
-        entry.images = await Promise.all(imagePromises);
-      }
-
-      saveEntry(entry);
-      alert('Memory added! Go to the Diary page to view it.');
-      diaryForm.reset();
-    });
-
-    function saveEntry(entry) {
-      db.ref('entries').push(entry);
+      });
+      entry.images = await Promise.all(imagePromises);
     }
-  </script>
+
+    // Push to Firebase
+    db.ref('entries').push(entry)
+      .then(() => {
+        alert("Memory added! Go to the Diary page to view it.");
+        diaryForm.reset();
+      })
+      .catch((error) => {
+        alert("Error saving memory: " + error.message);
+        console.error(error);
+      });
+  });
+</script>
+
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js"></script>
